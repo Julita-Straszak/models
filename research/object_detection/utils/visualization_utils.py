@@ -596,17 +596,22 @@ def visualize_boxes_and_labels_on_image_array(
     uint8 numpy array with shape (img_height, img_width, 3) with overlaid boxes.
   """
   # Create a display string (and color) for every box location, group any boxes
-  # that correspond to the same location.
+  #that correspond to the same location.
   box_to_display_str_map = collections.defaultdict(list)
   box_to_color_map = collections.defaultdict(str)
   box_to_instance_masks_map = {}
   box_to_instance_boundaries_map = {}
   box_to_keypoints_map = collections.defaultdict(list)
+  labels_list = []
+  scores_list = []
+  coordinates_list = []
+    
   if not max_boxes_to_draw:
     max_boxes_to_draw = boxes.shape[0]
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
     if scores is None or scores[i] > min_score_thresh:
       box = tuple(boxes[i].tolist())
+      coordinates_list.append(box)
       if instance_masks is not None:
         box_to_instance_masks_map[box] = instance_masks[i]
       if instance_boundaries is not None:
@@ -628,6 +633,8 @@ def visualize_boxes_and_labels_on_image_array(
           if not display_str:
             display_str = '{}%'.format(int(100*scores[i]))
           else:
+            labels_list.append (display_str)
+            scores_list.append (scores[i])
             display_str = '{}: {}%'.format(display_str, int(100*scores[i]))
         box_to_display_str_map[box].append(display_str)
         if agnostic_mode:
@@ -669,8 +676,8 @@ def visualize_boxes_and_labels_on_image_array(
           color=color,
           radius=line_thickness / 2,
           use_normalized_coordinates=use_normalized_coordinates)
-
-  return image
+    
+  return image, labels_list, scores_list, coordinates_list
 
 
 def add_cdf_image_summary(values, name):
